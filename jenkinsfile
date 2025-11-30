@@ -1,0 +1,60 @@
+pipeline {
+
+    agent any
+
+    environment {
+        SERVICE_NAME = "myservice"
+        IMAGE_NAME   = "myservice:latest"
+        PORT         = "3000"
+    }
+
+    stages {
+
+        stage ('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://your-repo-url.git'
+            }
+        }
+
+        stage ('Build Docker Image') {
+            steps {
+                sh """
+                docker build -t ${IMAGE_NAME} .
+                """
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                sh """
+                docker rm -f ${SERVICE_NAME} || true
+                """
+            }
+        }
+
+        stage ('Deploy New Container') {
+            steps {
+                sh """
+                docker run -d --name ${SERVICE_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
+                """
+            }
+        }
+
+        stage('Restart Nginx Proxy') {
+            steps {
+                sh """
+                docker restart mynginx || true
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Completed Successfully!"
+        }
+        failure {
+            echo "Deployment Failed!"
+        }
+    }
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Test Client</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Socket.IO Test Client</h1>
+
+    <div>
+        <label>Client:</label>
+        <input type="text" id="client" placeholder="Enter client">
+    </div>
+    <div>
+        <label>Modality:</label>
+        <input type="text" id="modality" placeholder="Enter modality">
+    </div>
+    <button onclick="joinRoom()">Join Room</button>
+
+    <h3>Messages:</h3>
+    <div id="messages"></div>
+
+    <script>
+        const socket = io('http://localhost:3001');
+
+        function joinRoom() {
+            const client = document.getElementById('client').value;
+            const modality = document.getElementById('modality').value;
+
+            if (client && modality) {
+                socket.emit('joinRoom', { client, modality });
+                appendMessage(`Joined room: ${client}-${modality}`);
+            } else {
+                alert('Please enter both client and modality.');
+            }
+        }
+
+        socket.on('receiveMessage', (data) => {
+            appendMessage(`Message received: ${data.message.body[data.message.body.length - 1].content}`);
+        });
+
+        function appendMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+        }
+    </script>
+</body>
+</html>
