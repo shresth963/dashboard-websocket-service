@@ -3,8 +3,8 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME = "myservice"
-        IMAGE_NAME   = "myservice:latest"
+        SERVICE_NAME = "dashboard-websocket-service"
+        IMAGE_NAME   = "dashboard-websocket-service:latest"
         PORT         = "3000"
     }
 
@@ -12,21 +12,24 @@ pipeline {
 
         stage ('Checkout') {
             steps {
-                git branch: 'main', url: 'https://your-repo-url.git'
+                // Using HTTPS – No SSH key required
+                git branch: 'main', url: 'https://github.com/shresth963/dashboard-websocket-service.git'
             }
         }
 
         stage ('Build Docker Image') {
             steps {
                 sh """
+                echo "Building Docker Image..."
                 docker build -t ${IMAGE_NAME} .
                 """
             }
         }
 
-        stage('Stop Old Container') {
+        stage ('Stop Old Container') {
             steps {
                 sh """
+                echo "Stopping old container if exists..."
                 docker rm -f ${SERVICE_NAME} || true
                 """
             }
@@ -35,6 +38,7 @@ pipeline {
         stage ('Deploy New Container') {
             steps {
                 sh """
+                echo "Deploying new container..."
                 docker run -d --name ${SERVICE_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                 """
             }
@@ -43,6 +47,7 @@ pipeline {
         stage('Restart Nginx Proxy') {
             steps {
                 sh """
+                echo "Restarting nginx proxy..."
                 docker restart mynginx || true
                 """
             }
@@ -51,10 +56,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment Completed Successfully!"
+            echo "🚀 Deployment Completed Successfully!"
         }
         failure {
-            echo "Deployment Failed!"
+            echo "❌ Deployment Failed!"
         }
     }
 }
