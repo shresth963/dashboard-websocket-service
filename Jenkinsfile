@@ -17,3 +17,11 @@ pipeline {
 
         stage('Deploy on EC2') {
             steps {
+                sh """
+                echo "Connecting to App EC2..."
+                ssh -o StrictHostKeyChecking=no ${APP_SERVER} 'echo Connected && docker ps'
+                """
+            }
+        }
+    }
+}
